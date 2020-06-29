@@ -14,7 +14,7 @@ public class Controller {
 
     private static final String PUT_FILE_TO_STORAGE = "UPDATE FILES SET STORAGE = ? WHERE FILE_ID = ?";
     private static final String GET_FILES_ID_FROM_STORAGE_BY_ID = "SELECT FILE_ID FROM FILES WHERE STORAGE = ?";
-    private static final String DELETE_FILE_FROM_STORAGE_BY_ID = "DELETE FROM FILES WHERE STORAGE = ? AND FILE_ID = ?";
+    private static final String DELETE_FILE_FROM_STORAGE_BY_ID = "UPDATE FILES SET STORAGE = NULL WHERE STORAGE = ? AND FILE_ID = ?";
     private static final String TRANSFER_FILE = "UPDATE FILES SET STORAGE = ? WHERE STORAGE = ? AND FILE_ID = ?";
     private static final String GET_ALL_FILES_FROM_STORAGE = "SELECT * FROM FILES WHERE STORAGE = ?";
     private static final String GET_STORAGE_BY_ID = "SELECT * FROM STORAGE WHERE ID = ?";
@@ -53,7 +53,9 @@ public class Controller {
             preparedStatement.setLong(1, storage.getId());
             preparedStatement.setLong(2, file.getId());
 
-            preparedStatement.executeUpdate();
+            int res = preparedStatement.executeUpdate();
+            if (res == 0)
+                throw new IllegalArgumentException("Storage with ID: " + storage.getId() + " doesn't contain file with ID: " + file.getId());
         } catch (SQLException e) {
             System.err.println("Something went wrong");
             e.printStackTrace();
@@ -91,8 +93,10 @@ public class Controller {
             preparedStatement.setLong(1, id);
 
             ResultSet resultSet = preparedStatement.executeQuery();
-            return mapFile(resultSet);
+            if(resultSet.next())
+                return mapFile(resultSet);
         }
+        return null;
     }
 
     public static Storage getStorageById(long storageId) throws SQLException {
@@ -102,8 +106,10 @@ public class Controller {
 
             ResultSet resultSet = preparedStatement.executeQuery();
 
-            return mapStorage(resultSet);
+            if (resultSet.next())
+                return mapStorage(resultSet);
         }
+        return null;
     }
 
     private static void putFilesList(Storage storage, List<File> files, Connection connection) throws SQLException, BadRequestException {
@@ -239,17 +245,12 @@ public class Controller {
     }
 
     private static File mapFile(ResultSet resultSet) throws SQLException {
-        while (resultSet.next()) {
-            return new File(resultSet.getLong("FILE_ID"), resultSet.getString("FILE_NAME"), resultSet.getString("FILE_FORMAT"), resultSet.getLong("FILE_SIZE"), getStorageById(resultSet.getLong("STORAGE")));
-        }
-        return null;
+        return new File(resultSet.getLong("FILE_ID"), resultSet.getString("FILE_NAME"), resultSet.getString("FILE_FORMAT"), resultSet.getLong("FILE_SIZE"), getStorageById(resultSet.getLong("STORAGE")));
     }
 
 
     private static Storage mapStorage(ResultSet resultSet) throws SQLException {
-        if (resultSet.next())
-            return new Storage(resultSet.getLong("ID"), resultSet.getString("FORMATS_SUPPORTED").split(", "), resultSet.getString("STORAGE_COUNTRY"), resultSet.getLong("STORAGE_MAX_SIZE"));
-        return null;
+        return new Storage(resultSet.getLong("ID"), resultSet.getString("FORMATS_SUPPORTED").split(", "), resultSet.getString("STORAGE_COUNTRY"), resultSet.getLong("STORAGE_MAX_SIZE"));
     }
 
 

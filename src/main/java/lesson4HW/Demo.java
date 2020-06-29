@@ -31,20 +31,24 @@ public class Demo {
 
         List<File> files3 = new ArrayList<>();
 
-        files3.add(file4);
+        files3.add(file7);
         files3.add(file6);
 
         //Controller.put(storage1, file1);
         //Controller.put(storage1, file10);
-        //System.out.println(storage1.getStorageMaxSize());
-        System.out.println(Controller.getAllFilesFromStorage(storage1.getId()).size());
-        //System.out.println(Controller.getAllFilesFromStorage(storage1.getId()));
-        //System.out.println(Controller.getFilesIdFromStorage(storage1.getId()).size());
-        //System.out.println(Controller.countFilesInStorageById(storage1.getId()));
         //Controller.put(storage1, file8);
 
         //Controller.putAll(storage1, files1);
         //Controller.putAll(storage1, files2);
         //Controller.putAll(storage1, files3);
+
+        //Controller.delete(storage1, file2);
+        //Controller.delete(storage1, file7);
+
+        //Controller.transferAll(storage1, storage2);
+        //Controller.transferAll(storage1, storage3);
+
+        Controller.transferFile(storage3, storage1, 100);
+        Controller.transferFile(storage3, storage1, 105);
     }
 }
